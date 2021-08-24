@@ -22,6 +22,9 @@ encoding_rs = "0.8"
 encoding_rs_io = "0.1"
 codespan-reporting = "0.11.1"
 
+[dev-dependencies]
+criterion = "0.3"
+
 
 [lib]
 name = "rusty"
@@ -30,3 +33,7 @@ path = "src/lib.rs"
 [[bin]]
 name = "rustyc"
 path = "src/main.rs"
+
+[[bench]]
+name = "lexer"
+harness = false

@@ -33,6 +33,7 @@ use inkwell::context::Context;
 use inkwell::targets::{
     CodeModel, FileType, InitializationConfig, RelocMode, Target, TargetMachine, TargetTriple,
 };
+use lexer::ParseSession;
 use parser::ParsedAst;
 use resolver::TypeAnnotator;
 use std::{fs::File, io::Read};
@@ -458,7 +459,14 @@ fn report_diagnostics(
     Ok(())
 }
 
-fn parse(source: &str) -> ParsedAst {
+/// Provides a lexer for the given souce
+pub fn lex(source: &str) -> ParseSession {
+    lexer::lex(source)
+}
+
+/// Parses a given source and generates a Compilation unit
+/// Also produces a list of all diagnostics encountered during the parsing
+pub fn parse(source: &str) -> ParsedAst {
     let lexer = lexer::lex(source);
     parser::parse(lexer)
 }

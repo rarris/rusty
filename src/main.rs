@@ -27,6 +27,8 @@ use rusty::{
 };
 mod linker;
 
+mod driver;
+
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 

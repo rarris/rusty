@@ -25,6 +25,7 @@ pub struct MemberInfo<'b> {
     variable_name: &'b str,
     variable_linkage: VariableType,
     variable_type_name: &'b str,
+    is_constant: bool,
 }
 
 impl VariableIndexEntry {
@@ -51,6 +52,10 @@ impl VariableIndexEntry {
     pub fn is_local(&self) -> bool {
         self.information.variable_type == VariableType::Local
     }
+
+    pub fn is_constant(&self) -> bool {
+        self.information.is_constant
+    }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -69,6 +74,8 @@ pub enum VariableType {
 pub struct VariableInformation {
     /// the type of variable
     variable_type: VariableType,
+    /// true if this variable is a compile-time-constant
+    is_constant: bool,
     /// the variable's datatype
     data_type_name: String,
     /// the variable's qualifier, None for global variables
@@ -398,6 +405,19 @@ impl Index {
         &self.global_variables
     }
 
+    /// returns globals and member variable index entries
+    pub fn get_all_variable_entries(&self) -> impl Iterator<Item = &VariableIndexEntry> {
+        let members = self
+            .member_variables
+            .values()
+            .flat_map(|it| it.values());
+
+        let globals = self.global_variables.values();
+
+        globals.chain(members)
+        
+    }
+
     pub fn get_global_qualified_enums(&self) -> &IndexMap<String, VariableIndexEntry> {
         &self.enum_qualified_variables
     }
@@ -466,6 +486,7 @@ impl Index {
                 variable_type: variable_linkage,
                 data_type_name: variable_type_name.into(),
                 qualifier: Some(container_name.into()),
+                is_constant: member_info.is_constant,
                 location,
             },
         };
@@ -488,6 +509,7 @@ impl Index {
             information: VariableInformation {
                 variable_type: VariableType::Global,
                 data_type_name: enum_type_name.into(),
+                is_constant: true,
                 qualifier: None,
                 location: 0,
             },
@@ -504,6 +526,7 @@ impl Index {
         name: &str,
         type_name: &str,
         initial_value: Option<AstStatement>,
+        is_constant: bool,
         source_location: SourceRange,
     ) {
         self.register_global_variable_with_name(
@@ -511,6 +534,7 @@ impl Index {
             name,
             type_name,
             initial_value,
+            is_constant,
             source_location,
         );
     }
@@ -521,6 +545,7 @@ impl Index {
         variable_name: &str,
         type_name: &str,
         initial_value: Option<AstStatement>,
+        is_constant: bool,
         source_location: SourceRange,
     ) {
         //REVIEW, this seems like a misuse of the qualified name to store the association name. Any other ideas?
@@ -535,6 +560,7 @@ impl Index {
                 variable_type: VariableType::Global,
                 data_type_name: type_name.into(),
                 qualifier: None,
+                is_constant,
                 location: 0,
             },
         };

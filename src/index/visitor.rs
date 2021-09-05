@@ -52,7 +52,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
             &instance_name,
             &pou.name,
             None,
-            false,  //program's instance variable is no constant
+            false, //program's instance variable is no constant
             pou.location.clone(),
         );
     }
@@ -94,7 +94,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                     variable_name: &var.name,
                     variable_linkage: block_type,
                     variable_type_name: &type_name,
-                    is_constant: block.constant
+                    is_constant: block.constant,
                 },
                 var.initializer.clone(),
                 var.location.clone(),
@@ -114,7 +114,7 @@ pub fn visit_pou(index: &mut Index, pou: &Pou) {
                 variable_name: pou.get_return_name(),
                 variable_linkage: VariableType::Return,
                 variable_type_name: return_type.get_name().unwrap_or_default(),
-                is_constant: false  //return variables are not constants
+                is_constant: false, //return variables are not constants
             },
             None,
             source_location,

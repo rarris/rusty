@@ -212,6 +212,7 @@ impl Index {
         self.implementations.extend(other.implementations);
     }
 
+
     pub fn get_void_type(&self) -> &DataType {
         &self.void_type
     }

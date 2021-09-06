@@ -4508,6 +4508,31 @@ fn array_of_int_type_generated() {
     assert_eq!(result, expected);
 }
 
+
+#[test]
+fn array_of_cast_int_type_generated() {
+    let result = codegen!(
+        "
+        PROGRAM prg 
+            VAR
+                x : ARRAY[0..INT#16#A] OF INT;
+            END_VAR
+        END_PROGRAM
+        "
+    );
+
+    let expected = generate_program_boiler_plate(
+        "prg",
+        &[("[11 x i16]", "x")],
+        "void",
+        "",
+        "",
+        r#"ret void
+"#,
+    );
+    assert_eq!(result, expected);
+}
+
 #[test]
 fn array_of_int_type_used() {
     let result = codegen!(

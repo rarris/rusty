@@ -150,6 +150,33 @@ impl From<&PouType> for ImplementationType {
     }
 }
 
+pub type ConstantsIndex = IndexMap<String, LiteralValue>;
+
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum LiteralValue {
+    Int(i128),
+    Real(f64),
+    Bool(bool),
+}
+
+impl LiteralValue {
+    pub fn get_int_value(&self) -> Result<i128, String> {
+        if let LiteralValue::Int(v) = self {
+            Ok(*v)
+        } else {
+            Err(format!("Expected Int-Literal, found {:?}", self))
+        }
+    }
+
+    pub fn get_bool_value(&self) -> Result<bool, String> {
+        if let LiteralValue::Bool(v) = self {
+            Ok(*v)
+        } else {
+            Err(format!("Expected Bool-Literal, found {:?}", self))
+        }
+    }
+}
+
 /// The global index of the rusty-compiler
 ///
 /// The index contains information about all referencable elements.
@@ -176,6 +203,9 @@ pub struct Index {
     implementations: IndexMap<String, ImplementationIndexEntry>,
 
     void_type: DataType,
+
+    /// all constants with their compile-time resolved values
+    resolved_constants: ConstantsIndex,
 }
 
 impl Index {
@@ -192,6 +222,7 @@ impl Index {
                 initial_value: None,
                 information: DataTypeInformation::Void,
             },
+            resolved_constants: ConstantsIndex::new(),
         }
     }
 
@@ -210,8 +241,8 @@ impl Index {
         self.member_variables.extend(other.member_variables);
         self.types.extend(other.types);
         self.implementations.extend(other.implementations);
+        self.resolved_constants.extend(other.resolved_constants);
     }
-
 
     pub fn get_void_type(&self) -> &DataType {
         &self.void_type
@@ -276,13 +307,13 @@ impl Index {
     pub fn find_variable(
         &self,
         context: Option<&str>,
-        segments: &[String],
+        segments: &[&str],
     ) -> Option<&VariableIndexEntry> {
         if segments.is_empty() {
             return None;
         }
 
-        let first_var = &segments[0];
+        let first_var = segments[0];
 
         let mut result = match context {
             Some(context) => self
@@ -297,6 +328,10 @@ impl Index {
             };
         }
         result
+    }
+
+    pub fn find_constant_value(&self, qualified_name: &str) -> Option<&LiteralValue> {
+        self.resolved_constants.get(qualified_name)
     }
 
     pub fn find_type(&self, type_name: &str) -> Option<&DataType> {
@@ -586,7 +621,7 @@ impl Index {
     pub fn find_callable_instance_variable(
         &self,
         context: Option<&str>,
-        reference: &[String],
+        reference: &[&str],
     ) -> Option<&VariableIndexEntry> {
         //look for a *callable* variable with that name
         self.find_variable(context, reference).filter(|v| {
@@ -594,6 +629,15 @@ impl Index {
             self.find_implementation(&v.information.data_type_name)
                 .is_some()
         })
+    }
+
+    /// drains all elements from the given `constants` and imports it into this index's `resolved_constants`
+    pub fn import_resolved_constants(&mut self, constants: ConstantsIndex) {
+        self.resolved_constants.extend(constants);
+    }
+
+    pub fn get_all_resolved_constants(&self) -> &ConstantsIndex {
+        &self.resolved_constants
     }
 }
 

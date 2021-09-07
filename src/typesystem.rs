@@ -1,5 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use std::ops::Range;
+use std::{mem::size_of, ops::Range};
 
 use crate::{
     ast::{AstStatement, Dimension},
@@ -13,20 +13,29 @@ pub const RANGE_CHECK_LS_FN: &str = "CheckLRangeSigned";
 pub const RANGE_CHECK_U_FN: &str = "CheckRangeUnsigned";
 pub const RANGE_CHECK_LU_FN: &str = "CheckLRangeUnsigned";
 
-pub type NATIVE_SINT_TYPE = i8;
-pub type NATIVE_INT_TYPE = i16;
-pub type NATIVE_DINT_TYPE = i32;
-pub type NATIVE_LINT_TYPE = i64;
-pub type NATIVE_BYTE_TYPE = u8;
-pub type NATIVE_WORD_TYPE = u16;
-pub type NATIVE_DWORD_TYPE = u32;
-pub type NATIVE_LWORD_TYPE = u64;
+pub type NativeBoolType = bool;
+pub type NativeSintType = i8;
+pub type NativeIntType = i16;
+pub type NativeDintType = i32;
+pub type NativeLintType = i64;
+pub type NativeByteType = u8;
+pub type NativeWordType = u16;
+pub type NativeDwordType = u32;
+pub type NativeLwordType = u64;
+pub type NativeRealType = f32;
+pub type NativeLrealType = f64;
 
-pub const BYTE_SIZE: u32 = 8;
-pub const SINT_SIZE: u32 = INT_SIZE / 2;
-pub const INT_SIZE: u32 = 16;
-pub const DINT_SIZE: u32 = 2 * INT_SIZE;
-pub const LINT_SIZE: u32 = 2 * DINT_SIZE;
+//TODO should we change this to usize?
+pub const BOOL_SIZE: u32 = 1;
+pub const BYTE_SIZE: u32 = (size_of::<NativeSintType>() * 8) as u32;
+pub const SINT_SIZE: u32 = (size_of::<NativeSintType>() * 8) as u32;
+pub const INT_SIZE: u32 = (size_of::<NativeIntType>() * 8) as u32;
+pub const DINT_SIZE: u32 = (size_of::<NativeDintType>() * 8) as u32;
+pub const LINT_SIZE: u32 = (size_of::<NativeLintType>() * 8) as u32;
+pub const REAL_SIZE: u32 = (size_of::<NativeRealType>() * 8) as u32;
+pub const LREAL_SIZE: u32 = (size_of::<NativeLrealType>() * 8) as u32;
+pub const DATE_TIME_SIZE: u32 = 64;
+
 
 pub const BOOL_TYPE: &str = "BOOL";
 pub const BYTE_TYPE: &str = "BYTE";
@@ -245,7 +254,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: BOOL_TYPE.into(),
                 signed: true,
-                size: 1,
+                size: BOOL_SIZE,
             },
         },
         DataType {
@@ -254,7 +263,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: BYTE_TYPE.into(),
                 signed: false,
-                size: 8,
+                size: BYTE_SIZE,
             },
         },
         DataType {
@@ -263,7 +272,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: SINT_TYPE.into(),
                 signed: true,
-                size: 8,
+                size: SINT_SIZE,
             },
         },
         DataType {
@@ -272,7 +281,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: USINT_TYPE.into(),
                 signed: false,
-                size: 8,
+                size: SINT_SIZE,
             },
         },
         DataType {
@@ -281,7 +290,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: WORD_TYPE.into(),
                 signed: false,
-                size: 16,
+                size: INT_SIZE,
             },
         },
         DataType {
@@ -290,7 +299,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: INT_TYPE.into(),
                 signed: true,
-                size: 16,
+                size: INT_SIZE,
             },
         },
         DataType {
@@ -299,7 +308,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: UINT_TYPE.into(),
                 signed: false,
-                size: 16,
+                size: INT_SIZE,
             },
         },
         DataType {
@@ -335,7 +344,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: LWORD_TYPE.into(),
                 signed: false,
-                size: 64,
+                size: LINT_SIZE,
             },
         },
         DataType {
@@ -344,7 +353,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: LINT_TYPE.into(),
                 signed: true,
-                size: 64,
+                size: LINT_SIZE,
             },
         },
         DataType {
@@ -353,7 +362,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: DATE_TYPE.into(),
                 signed: true,
-                size: 64,
+                size: DATE_TIME_SIZE,
             },
         },
         DataType {
@@ -362,7 +371,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: TIME_TYPE.into(),
                 signed: true,
-                size: 64,
+                size: DATE_TIME_SIZE,
             },
         },
         DataType {
@@ -371,7 +380,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: DATE_AND_TIME_TYPE.into(),
                 signed: true,
-                size: 64,
+                size: DATE_TIME_SIZE,
             },
         },
         DataType {
@@ -380,7 +389,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: TIME_OF_DAY_TYPE.into(),
                 signed: true,
-                size: 64,
+                size: DATE_TIME_SIZE,
             },
         },
         DataType {
@@ -389,7 +398,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             information: DataTypeInformation::Integer {
                 name: ULINT_TYPE.into(),
                 signed: false,
-                size: 64,
+                size: LINT_SIZE,
             },
         },
         DataType {
@@ -397,7 +406,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Float {
                 name: REAL_TYPE.into(),
-                size: 32,
+                size: REAL_SIZE,
             },
         },
         DataType {
@@ -405,7 +414,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
             initial_value: None,
             information: DataTypeInformation::Float {
                 name: LREAL_TYPE.into(),
-                size: 64,
+                size: LREAL_SIZE,
             },
         },
         DataType {

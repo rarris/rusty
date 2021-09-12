@@ -136,7 +136,7 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
                     )
                     .unwrap();
                 let array_type = self
-                    .create_nested_array_type(inner_type, dimensions.clone())
+                    .create_nested_array_type(inner_type, dimensions)?
                     .into();
                 Ok(array_type)
             }
@@ -281,33 +281,22 @@ impl<'ink, 'b> DataTypeGenerator<'ink, 'b> {
     fn create_nested_array_type(
         &self,
         end_type: BasicTypeEnum<'ink>,
-        dimensions: Vec<Dimension>,
-    ) -> ArrayType<'ink> {
+        dimensions: &[Dimension],
+    ) -> Result<ArrayType<'ink>, CompileError> {
         let mut result: Option<ArrayType> = None;
         let mut current_type = end_type;
         for dimension in dimensions.iter().rev() {
+            let len = dimension.get_length()? as u32;
             result = Some(match current_type {
-                BasicTypeEnum::IntType(..) => current_type
-                    .into_int_type()
-                    .array_type(dimension.get_length()),
-                BasicTypeEnum::FloatType(..) => current_type
-                    .into_float_type()
-                    .array_type(dimension.get_length()),
-                BasicTypeEnum::StructType(..) => current_type
-                    .into_struct_type()
-                    .array_type(dimension.get_length()),
-                BasicTypeEnum::ArrayType(..) => current_type
-                    .into_array_type()
-                    .array_type(dimension.get_length()),
-                BasicTypeEnum::PointerType(..) => current_type
-                    .into_pointer_type()
-                    .array_type(dimension.get_length()),
-                BasicTypeEnum::VectorType(..) => current_type
-                    .into_vector_type()
-                    .array_type(dimension.get_length()),
+                BasicTypeEnum::IntType(..) => current_type.into_int_type().array_type(len),
+                BasicTypeEnum::FloatType(..) => current_type.into_float_type().array_type(len),
+                BasicTypeEnum::StructType(..) => current_type.into_struct_type().array_type(len),
+                BasicTypeEnum::ArrayType(..) => current_type.into_array_type().array_type(len),
+                BasicTypeEnum::PointerType(..) => current_type.into_pointer_type().array_type(len),
+                BasicTypeEnum::VectorType(..) => current_type.into_vector_type().array_type(len),
             });
             current_type = result.unwrap().into();
         }
-        result.unwrap()
+        Ok(result.unwrap())
     }
 }

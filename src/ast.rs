@@ -10,13 +10,36 @@ mod pre_processor;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Dimension {
-    pub start_offset: i32,
-    pub end_offset: i32,
+    start_offset: AstStatement,
+    end_offset: AstStatement,
 }
 
 impl Dimension {
-    pub fn get_length(&self) -> u32 {
-        (self.end_offset - self.start_offset + 1) as u32
+    /// returns the length of this dimension or an Error if
+    /// this dimension was not resolved yet
+    pub fn get_length(&self) -> std::result::Result<i64, CompileError> {
+        Ok(self.get_end()? - self.get_start()? + 1)
+    }
+
+    pub fn get_start(&self) -> std::result::Result<i64, CompileError> {
+        Dimension::extract_literal_int(&self.start_offset)
+    }
+
+    pub fn get_end(&self) -> std::result::Result<i64, CompileError> {
+        Dimension::extract_literal_int(&self.end_offset)
+    }
+
+    pub fn extract_literal_int(literal: &AstStatement) -> std::result::Result<i64, CompileError> {
+        if let AstStatement::LiteralInteger {
+            value, location, ..
+        } = literal
+        {
+            Ok(*value)
+        } else {
+            Err(CompileError::literal_or_constant_int_expected(
+                literal.get_location(),
+            ))
+        }
     }
 }
 
@@ -1093,11 +1116,11 @@ pub fn get_array_dimensions(bounds: &AstStatement) -> result::Result<Vec<Dimensi
 /// throws an error if the given statement is no RangeStatement
 fn get_single_array_dimension(bounds: &AstStatement) -> result::Result<Dimension, CompileError> {
     if let AstStatement::RangeStatement { start, end, .. } = bounds {
-        let start_offset = evaluate_constant_int(start).unwrap_or(0);
-        let end_offset = evaluate_constant_int(end).unwrap_or(0);
+        //let start_offset = evaluate_constant_int(start).unwrap_or(0);
+        //let end_offset = evaluate_constant_int(end).unwrap_or(0);
         Ok(Dimension {
-            start_offset,
-            end_offset,
+            start_offset: start.as_ref().clone(),
+            end_offset: end.as_ref().clone(),
         })
     } else {
         Err(CompileError::codegen_error(

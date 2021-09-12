@@ -900,7 +900,7 @@ impl<'a, 'b> ExpressionCodeGenerator<'a, 'b> {
         dimension: &Dimension,
         access_expression: &AstStatement,
     ) -> Result<IntValue<'a>, CompileError> {
-        let start_offset = dimension.start_offset;
+        let start_offset = dimension.get_start()?;
         let (_, access_value) = self.generate_expression(access_expression)?;
         //If start offset is not 0, adjust the current statement with an add operation
         if start_offset != 0 {

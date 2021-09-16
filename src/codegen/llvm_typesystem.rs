@@ -280,16 +280,18 @@ pub fn cast_if_needed<'ctx>(
                 location_context.get_location(),
             )),
         },
-        DataTypeInformation::String {
-            size, default_size, ..
-        } => match value_type {
+        DataTypeInformation::String { size, .. } => match value_type {
             DataTypeInformation::String {
-                size: value_size,
-                default_size: value_default_size,
-                ..
+                size: value_size, ..
             } => {
-                let size = calculate_string_size(index, size, *default_size)?;
-                let value_size = calculate_string_size(index, value_size, *value_default_size)?;
+                let size = size
+                    .get_int_value(index)
+                    .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
+                    as u32;
+                let value_size = value_size
+                    .get_int_value(index)
+                    .map_err(|msg| CompileError::codegen_error(msg, SourceRange::undefined()))?
+                    as u32;
                 if size < value_size {
                     //if we are on a vector replace it
                     if value.is_vector_value() {

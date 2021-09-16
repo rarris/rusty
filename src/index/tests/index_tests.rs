@@ -3,6 +3,7 @@ use pretty_assertions::assert_eq;
 
 use crate::lexer;
 use crate::parser;
+use crate::typesystem::TypeSize;
 use crate::{ast::*, index::VariableType, typesystem::DataTypeInformation};
 
 macro_rules! index {
@@ -1434,12 +1435,8 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
             if let DataTypeInformation::Array { dimensions, .. } = it {
                 //return the pair (start, end)
                 (
-                    index
-                        .get_constant_expression(&dimensions[0].start_offset)
-                        .unwrap(),
-                    index
-                        .get_constant_expression(&dimensions[0].end_offset)
-                        .unwrap(),
+                    dimensions[0].start_offset.get_int_value(&index).unwrap(),
+                    dimensions[0].end_offset.get_int_value(&index).unwrap(),
                 )
             } else {
                 unreachable!()
@@ -1472,12 +1469,8 @@ fn array_dimensions_are_stored_in_the_const_expression_arena() {
             if let DataTypeInformation::Array { dimensions, .. } = it {
                 //return the pair (start, end)
                 (
-                    index
-                        .get_constant_expression(&dimensions[1].start_offset)
-                        .unwrap(),
-                    index
-                        .get_constant_expression(&dimensions[1].end_offset)
-                        .unwrap(),
+                    dimensions[1].start_offset.get_int_value(&index).unwrap(),
+                    dimensions[1].end_offset.get_int_value(&index).unwrap(),
                 )
             } else {
                 unreachable!()
@@ -1516,7 +1509,10 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
     } else {
         unreachable!()
     };
-    if let Some(DataTypeInformation::String { size, .. }) = index.find_type_information("MyString")
+    if let Some(DataTypeInformation::String {
+        size: TypeSize::ConstExpression(expr),
+        ..
+    }) = index.find_type_information("MyString")
     {
         assert_eq!(
             format!(
@@ -1528,7 +1524,7 @@ fn string_dimensions_are_stored_in_the_const_expression_arena() {
                     right: Box::new(crate::parser::tests::literal_int(1))
                 }
             ),
-            format!("{:#?}", index.get_maybe_constant_expression(&size).unwrap())
+            format!("{:#?}", index.get_constant_expression(&expr).unwrap())
         );
     } else {
         unreachable!()
